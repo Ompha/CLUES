@@ -60,11 +60,6 @@ def add_to_dict(sav_data, cat, obid):
 #         add_to_dict(sav_data, obid, 'final_contfit_full')
 
     return cat
-obid = 'HD113766'
-# altname_list = {'etaCrv':'EtaCrv.sav'}
-data_mittal[obid] = {}
-
-data_mittal = add_to_dict(save_file, data_mittal, obid)     
 
 def fit_cont(spectrum, wave_grid=None, flux_downSamp_switch=True, regions=None, order=None):
     """
@@ -165,6 +160,10 @@ def create_3_panel_plot(x_top_list, y_top_list, x_middle_list, y_middle_list, x_
     Returns:
         None
     """
+    # Set some marker shapes
+    marker_top_list = ['-', '-', '-.', '--', 'o']
+    marker_middle_list = ['-', 'o']
+    marker_bottom_list = ['-']
     # Get the number of panels
     num_top = len(x_top_list)
     num_middle = len(x_middle_list)
