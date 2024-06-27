@@ -3,6 +3,16 @@ from scipy.cluster.hierarchy import dendrogram, linkage,fcluster
 from sklearn.metrics import silhouette_score
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.manifold import MDS
+import matplotlib as mpl
+from matplotlib.ticker import LinearLocator
+from sklearn.metrics import euclidean_distances
+import scipy.spatial as sp, scipy.cluster.hierarchy as hc
+from scipy.cluster import hierarchy
+import matplotlib.cm as cm
+import networkx as nx
+from torch_geometric.utils import to_networkx
+import gravis as gv
 
 def hierarchical_clustering(X, min_clusters, max_clusters, method='single', metric='euclidean', 
                             compute_MDS_switch=True, 
@@ -36,7 +46,7 @@ def hierarchical_clustering(X, min_clusters, max_clusters, method='single', metr
     
     # Perform hierarchical clustering
     Z = linkage(sp.distance.squareform(X), method=method)
-    
+
     # Initialize arrays to store silhouette scores and optimal cluster numbers
     silhouette_scores = []
     optimal_n_clusters = []
@@ -210,3 +220,59 @@ def plot_seq(objects_list_shuffled,
         plt.savefig(fname)
     plt.show()
     return
+
+class MplColorHelper:
+    def __init__(self, cmap_name, start_val, stop_val):
+        self.cmap_name = cmap_name
+        self.cmap = plt.get_cmap(cmap_name)
+        self.norm = mpl.colors.Normalize(vmin=start_val, vmax=stop_val)
+        self.scalarMap = cm.ScalarMappable(norm=self.norm, cmap=self.cmap)
+
+    def get_rgba(self, val):
+        return self.scalarMap.to_rgba(val, bytes=True)
+
+    def get_rgb_str(self, val):
+        r, g, b, a = self.get_rgba(val)
+        return f"rgb({r},{g},{b})"
+    
+def rgb_to_hex(r, g, b):
+    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
+def set_node_colors(g, cmap='viridis'):
+    '''Set colours based on importance values'''
+
+    # scale our colourmap to be between the min-max importance
+    vals = []
+    for node, data in g.nodes(data=True):
+        vals.append(data['clusterid'])
+    min_val, max_val = min(vals), max(vals)
+
+    # initialise colour helper
+    node_color_generator = MplColorHelper(cmap, min_val, max_val)
+    node_colors = {}
+    # get rgb string for each node and convert to hex str
+    for node, data in g.nodes(data=True):         
+        color_rgb = node_color_generator.get_rgb_str(data['clusterid'])
+        color_rgb = color_rgb.split('rgb(')[1]
+        color_rgb = color_rgb.split(')')
+        color_rgb = color_rgb[0].split(',')
+        a,b,c = int(color_rgb[0]), int(color_rgb[1]), int(color_rgb[2])
+        hex_code = rgb_to_hex(a, b, c)
+        node_colors[node] = hex_code
+    nx.set_node_attributes(g, node_colors, name='color')
+
+def set_node_level_imoprtance(g):
+    '''Get node level importance'''
+    # sum over each feature importance per node to get the overall node importance
+    node_level_importance = np.array(g.graph['node_mask']).sum(axis=1)
+
+    # assign the importance value to each node as an attribute
+    node_level_importance_dict = { i : node_level_importance[i] for i in g.nodes }
+    nx.set_node_attributes(g, node_level_importance_dict, name="importance")
+
+def set_edge_level_importance(g):
+    '''Get edge level importance'''
+    edge_level_importance = g.graph['edge_mask']
+
+    # assign the importance value to each edge as an attribute
+    edge_level_importance_dict = { edge : edge_level_importance[i] for i, edge in enumerate(g.edges) }
+    nx.set_edge_attributes(g, edge_level_importance_dict, name="importance")
