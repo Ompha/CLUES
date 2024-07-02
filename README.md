@@ -23,7 +23,7 @@ Follow the tutorial from notebooks folder.
     * [ClusterAnalyses-hierarchicalCluster.ipynb](https://github.com/Ompha/CLUES/blob/main/notebooks/ClusterAnalyses-hierarchicalCluster.ipynb) where you can perform hierarchical clustering and Sihouette Score criterion based on a Minimum spanning tree (MST). 
 
 ## Cite
-If you make use of the code in this directory, CLUES, please cite our paper (in review) and the Sequencer paper.
+If you make use of the code in this directory, CLUES, please cite our paper (under review) and the Sequencer paper.
 
 Citation key:
 ```
