@@ -16,7 +16,6 @@ conda envName create -f req.yml
 ```
 Follow the tutorial from notebooks folder. 
 * To preprocess and prepare your data, see recommended practices in [data_Preprocessing.ipynb](https://github.com/Ompha/CLUES/blob/main/notebooks/data_Preprocessing.ipynb). 
-* test [data_Preprocessing.ipynb](https://github.com/Ompha/CLUES/blob/main/notebooks/data_Preprocessing.ipynb)
 * For analyzing and clustering your data, please refer to 
     * [ClusterAnalyses-1DSequence.ipynb](https://github.com/Ompha/CLUES/blob/main/notebooks/ClusterAnalyses-1DSequence.ipynb) where you can learn how to generate a 1D sequence using [Sequencer](https://github.com/dalya/Sequencer) (Baron & Menard 2020), and
     * [ClusterAnalyses-hierarchicalCluster.ipynb](https://github.com/Ompha/CLUES/blob/main/notebooks/ClusterAnalyses-hierarchicalCluster.ipynb) where you can perform hierarchical clustering and Sihouette Score criterion based on a Minimum spanning tree (MST). 
