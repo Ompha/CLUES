@@ -12,7 +12,7 @@ Ha! You've stumbled upon this machine-learning classification tools for spectra 
 ## Quick Start
 I recommend making a new conda environment for this software.
 ```
-conda env create -n envname -f req.yml
+conda create -n envname -f req.yml
 ```
 Follow the tutorial from notebooks folder. 
 * To preprocess and prepare your data, see recommended practices in [data_Preprocessing.ipynb](https://github.com/Ompha/CLUES/blob/main/notebooks/data_Preprocessing.ipynb). 
