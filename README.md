@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/Ompha/CLUES/blob/main/logo.png">
-    <img alt="Social Preview" src="https://https://github.com/Ompha/CLUES/blob/main/logo.png" width="100%" />
+    <img src="https://github.com/Ompha/CLUES/blob/main/logo.png" width="100%" />
   </a>
 </p>
 
