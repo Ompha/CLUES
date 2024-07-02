@@ -1,0 +1,17 @@
+channels:
+  - conda-forge
+  # - pyg
+dependencies:
+  - python=3.9
+  - astropy
+  - gravis
+  - matplotlib
+  - networkx=2.8.8
+  - numpy==1.23.5
+  - pandas
+  - pygraphviz
+  - scikit-learn
+  - scipy
+  # - pyg
+  - ipykernel
+  - seaborn

@@ -12,7 +12,9 @@ Ha! You've stumbled upon this machine-learning classification tools for spectra 
 ## Quick Start
 I recommend making a new conda environment for this software.
 ```
-conda create -n envname -f req.yml
+conda env create -n clues -f environment.yaml
+conda activate clues
+pip install TheSequencer
 ```
 Follow the tutorial from notebooks folder. 
 * To preprocess and prepare your data, see recommended practices in [data_Preprocessing.ipynb](https://github.com/Ompha/CLUES/blob/main/notebooks/data_Preprocessing.ipynb). 
