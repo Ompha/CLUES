@@ -8,7 +8,6 @@ import matplotlib as mpl
 from matplotlib.ticker import LinearLocator
 from sklearn.metrics import euclidean_distances
 import scipy.spatial as sp, scipy.cluster.hierarchy as hc
-from scipy.cluster import hierarchy
 import matplotlib.cm as cm
 import networkx as nx
 from torch_geometric.utils import to_networkx
@@ -16,6 +15,9 @@ import gravis as gv
 from sklearn.datasets import make_blobs
 from scipy.cluster.hierarchy import dendrogram, linkage,fcluster
 from sklearn.metrics import silhouette_score
+from matplotlib import cm,colors
+from matplotlib.animation import FuncAnimation, PillowWriter
+
 
 class MplColorHelper:
     def __init__(self, cmap_name, start_val, stop_val):
@@ -84,13 +86,7 @@ def hierarchical_clustering(X, min_clusters, max_clusters, method='single', metr
                            truncate_mode='level', 
                            D_leaf_colors=None,
                             color_threshold = 0.13, 
-                            colormap_viridis =
-                                                {'1':'#fde725',
-                                                '2':'#5ec962',
-                                                '3':'#21918c',
-                                                '4':'#3b528b',
-                                                '5':'#440154'
-                                                }
+                            colormap_viridis_override = False
                            ):
     """
     Function to perform hierarchical clustering on a n by 3 array with different linkage methods,
@@ -160,6 +156,12 @@ def hierarchical_clustering(X, min_clusters, max_clusters, method='single', metr
     optimal_n_clusters = np.argmax(silhouette_scores) + min_clusters
 
     print('Optimal Cluster number is: ', optimal_n_clusters)
+    if colormap_viridis_override:
+        colormap_viridis = colormap_viridis_override
+    else:
+        cmap = plt.get_cmap('viridis', optimal_n_clusters+1)
+        colormap_viridis = [colors.rgb2hex(cmap(i)) for i in range(cmap.N)]
+
     # Plot the number of clusters vs Silhouette score
     ax2 = fig.add_subplot(122)
     ax2.plot(range(min_clusters, max_clusters + 1), silhouette_scores, 'o-')
@@ -172,8 +174,8 @@ def hierarchical_clustering(X, min_clusters, max_clusters, method='single', metr
     # Visualize the dendrogram
     fig = plt.figure(figsize=(12, 7))
 #     cpalette = ['#fde725','#5ec962','#21918c','#3b528b','#440154']
-    cpalette = [val for key, val in colormap_viridis.items()]
-    hierarchy.set_link_color_palette(cpalette[::-1])
+    cpalette = [val for key, val in enumerate(colormap_viridis)]
+    hc.set_link_color_palette(cpalette[::-1])
     dendrogram(Z, 
                p = int(optimal_n_clusters),
                labels = label_names, 
@@ -307,13 +309,13 @@ def hierarchical_clustering_v2(X, min_clusters, max_clusters, method='single',
                             color_threshold = 0.13, 
                             scatter_size = 5, 
                             scatter_size2 = 5, 
-                            colormap_viridis =
-                                {'1':'#fde725',
-                                '2':'#5ec962',
-                                '3':'#21918c',
-                                '4':'#3b528b',
-                                '5':'#440154'
-                                }
+                            sphereRadius=0.1,
+                            elev_view=30,
+                            azim_view=45,
+                            colormap_viridis_override =False,
+                            gif_switch = True,
+                            fs1_label = 20,
+                            prefix='/'
                            ):
     """
     Function to perform hierarchical clustering on a n by 3 array with different linkage methods,
@@ -351,7 +353,8 @@ def hierarchical_clustering_v2(X, min_clusters, max_clusters, method='single',
     # Plot the results in 3D coordinates with different colors for each cluster
     fig = plt.figure(figsize=(12, 7))
     ax = fig.add_subplot(1,2,1, projection='3d')
-    
+    ax.view_init(elev=elev_view, azim=azim_view)
+
     if twoD_switch:
         ax_xy = fig.add_subplot(2, 2, 2)
         ax_yz = fig.add_subplot(2, 2, 4)
@@ -369,11 +372,18 @@ def hierarchical_clustering_v2(X, min_clusters, max_clusters, method='single',
         xs_arr = []
         ys_arr = []
         zs_arr = []
+
+    if colormap_viridis_override:
+        colormap_viridis = colormap_viridis_override
+    else:
+        cmap = plt.get_cmap('viridis', optimal_n_clusters+1)
+        colormap_viridis = [colors.rgb2hex(cmap(i)) for i in range(cmap.N)]
+
 # Try Plotting 3D Spheres: 
-        cpalette = [val for key, val in colormap_viridis.items()]
+        cpalette = [val for key, val in enumerate(colormap_viridis)]
         cpalette = cpalette[::-1]
         for i,_ in enumerate(X_mds[:,0]):
-            (xs,ys,zs) = drawSphere(X_mds[:, 0][i], X_mds[:, 1][i], X_mds[:, 2][i], r= 0.1/10)
+            (xs,ys,zs) = drawSphere(X_mds[:, 0][i], X_mds[:, 1][i], X_mds[:, 2][i], r= sphereRadius/10)
             xs_arr.append(xs)
             ys_arr.append(ys)
             zs_arr.append(zs)
@@ -406,23 +416,62 @@ def hierarchical_clustering_v2(X, min_clusters, max_clusters, method='single',
                         label_names[i], alpha = 0.3) # for printing labels
 
 
-    else:
-        ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=labels, cmap='viridis')
-        if scatter_label: 
-            for i,_ in enumerate(X[:, 0]):
-                ax.text(X[:, 0][i], X[:, 1][i], X[:, 2][i],label_names[i])
+        else:
+            ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=labels, cmap='viridis')
+            if scatter_label: 
+                for i,_ in enumerate(X[:, 0]):
+                    ax.text(X[:, 0][i], X[:, 1][i], X[:, 2][i],label_names[i])
 
-    ax.set_title(f'Hierarchical Clustering ({method} Linkage)')
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
+    ax.set_title(f'Hierarchical Clustering ({method} Linkage)',fontsize=fs1_label )
+    ax.set_xlabel('X' ,fontsize=fs1_label)
+    ax.set_ylabel('Y',fontsize=fs1_label)
+    ax.set_zlabel('Z',fontsize=fs1_label)
 #     ax.set_xlim(-0.1, 0.3)
 #     ax.set_ylim(-0.2, 0.2)
 #     ax.set_zlim(-0.2, 0.2)
     
-    ax.set_aspect('equalxy')
-    
-    
+    ax.set_aspect('equal')
+    if gif_switch:
+        def update(angle):
+            ax.clear()  # Clear the plot before updating for the new frame
+            
+            # Replot the spheres
+            for i in range(len(X_mds)):
+                ax.plot_wireframe(xs_arr[i], ys_arr[i], zs_arr[i], rcount=10, ccount=10,
+                                color=cpalette[labels[i] - 1], alpha=0.6)
+            
+                z_plane = min(X_mds[:, 2])
+                z_plane *= 1.1
+                ax.plot((X_mds[i, 0], X_mds[i, 0]), (X_mds[i, 1], X_mds[i, 1]), (z_plane, X_mds[i, 2]),
+                        color=cpalette[labels[i] - 1], lw=0.2, alpha=0.8)
+                
+                ax.plot(X_mds[i, 0], X_mds[i, 1], z_plane, 'x',
+                        color=cpalette[labels[i] - 1], ms=5, alpha=0.8)
+            if scatter_label: 
+                for i,_ in enumerate(X_mds[:,0]):
+        #             print(X_mds[:, 0][i], X_mds[:, 1][i], X_mds[:, 2][i], label_names[i])
+                    ax.text(X_mds[:, 0][i], X_mds[:, 1][i], X_mds[:, 2][i]*1.01, 
+                            label_names[i], alpha = 0.3) # for printing labels
+
+            # Set plot parameters
+            ax.set_title(f'Hierarchical Clustering ({method} Linkage)', fontsize=fs1_label)
+            ax.set_xlabel('X', fontsize=fs1_label*0.8)
+            ax.set_ylabel('Y', fontsize=fs1_label*0.8)
+            ax.set_zlabel('Z', fontsize=fs1_label*0.8)
+            ax.set_aspect('equal')
+
+            # Set rotation angle
+            ax.view_init(elev=30, azim=angle)
+
+        # Create the animation, rotating from 0 to 360 degrees
+        anim = FuncAnimation(fig, update, frames=np.arange(0, 360, 2), interval=100)
+
+        # Save the animation as a GIF using PillowWriter
+        writer = PillowWriter(fps=15,
+                            metadata=dict(artist='Me'),
+                            bitrate=1800)
+        anim.save(prefix+'MDS_3D.gif', writer=writer)
+
     # Create an empty list to store silhouette scores
     silhouette_scores = []
 
@@ -441,19 +490,17 @@ def hierarchical_clustering_v2(X, min_clusters, max_clusters, method='single',
         ax2 = fig.add_subplot(122)
         ax2.plot(range(min_clusters, max_clusters + 1), silhouette_scores, 'o-', c = 'RoyalBlue')
         ax2.set_title(f'Number of Clusters vs Silhouette Score ({method} Linkage)')
-        ax2.set_xlabel('Number of Clusters')
-        ax2.set_ylabel('Silhouette Score')
+        ax2.set_xlabel('Number of Clusters', fontsize=fs1_label)
+        ax2.set_ylabel('Silhouette Score', fontsize=fs1_label)
         ax2.axvline(optimal_n_clusters, color='r', linestyle='--', label='Optimal Number of Clusters')
         ax2.legend()
     
 # Visualize the dendrogram
-#     cpalette = ['#fde725','#5ec962','#21918c','#3b528b','#440154']
-#     cpalette = [val for key, val in colormap_viridis.items()]
-    hierarchy.set_link_color_palette(cpalette)
+    hc.set_link_color_palette(cpalette)
     print(int(optimal_n_clusters))
     
     if dendrogram_switch: 
-        fig = plt.figure(figsize=(12, 7))
+        fig = plt.figure(figsize=(12, 5))
         
         cluster_colors = cpalette
         cluster_colors_array = [cluster_colors[l - 1] for l in labels]
@@ -475,14 +522,14 @@ def hierarchical_clustering_v2(X, min_clusters, max_clusters, method='single',
         )
         
         
-        leaves = hierarchy.leaves_list(Z)
+        leaves = hc.leaves_list(Z)
         print(leaves)
         for i, leaf in enumerate(plt.gca().get_xticklabels()):
             leaf.set_color(cpalette[labels[leaves[i]] - 1])
     
-        plt.title(f'Hierarchical Clustering Dendrogram ({method} Linkage)')
-        plt.xlabel('Samples')
-        plt.ylabel('Distance')
+        plt.title(f'Hierarchical Clustering Dendrogram ({method} Linkage)', fontsize=fs1_label)
+        plt.xlabel('Samples', fontsize=fs1_label)
+        plt.ylabel('Distance', fontsize=fs1_label)
         plt.tight_layout()
         plt.show()
     return labels,optimal_n_clusters
