@@ -7,6 +7,8 @@
 # CLUES
 CLustering UnsupErvised with Sequencer: A fully interpretable clustering tool for analyzing spectral data 
 
+[![DOI](https://zenodo.org/badge/820419517.svg)](https://zenodo.org/doi/10.5281/zenodo.13789620)
+
 ## Welcome
 Ha! You've stumbled upon this machine-learning classification tools for spectra and IFU data! 
 ## Quick Start
